@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 
-/*
- *This class is a SQLMR server, client can use this to communicate with SQLMR.
- *In this server, we will receive client's information(name, password, database) and statements.
- *Then we will execute those statements and wrap the result set in packets. 
+/** 
+ * This class is a server to connect with SQLMR, clients through this server operate SQLMR database. 
+ * In this server, we will receive client's information(name, password, database) and statements.
+ * Then we will execute those statements and wrap the result set in packets. 
+ * @author: Kuo
+ * @since 2013/08/29
+ * @version 1.0
  * */
 public class ConnectSQLMR extends Thread {
 
@@ -37,9 +40,11 @@ public class ConnectSQLMR extends Thread {
 	private String encoding;
 
 	
-	/*
-	 * 
-	 * */
+	/**
+	 * This method is used to create a socket and communication with clients.
+	 * The default port is 8765.
+	 * If default port is occupied, it will find other free port.
+	 **/
 	public ConnectSQLMR() {
 		int port = 8765;
 		
@@ -54,6 +59,11 @@ public class ConnectSQLMR extends Thread {
 		}
 	}
 
+	/**
+	 * A thread is used to running server.
+	 * It will receive user's information(name, pw, DB, statements).
+	 * And then send statements to SQLMR database
+	 */
 	public void run() {
 		int statementLen;
 		String statement;
@@ -75,7 +85,7 @@ public class ConnectSQLMR extends Thread {
 				int countDIgit;
 
 				while ((countDIgit = in.read(queryLen, 0, intTypeLen)) != -1) {//if there have packets
-					System.out.println("count: " + countDIgit);//XXX: for testing
+
 					statementLen = readInt(queryLen);
 					statement = getStatement(statementLen);
 					
@@ -105,10 +115,19 @@ public class ConnectSQLMR extends Thread {
 
 	}
 
+	/**
+	 * 	This is main class about server
+	 * 
+	 * @throws Exception
+	 * 		When fetch packets causing problem, it will throw exception events.
+	 */
 	public static void main(String args[]) throws Exception {
 		(new ConnectSQLMR()).start();
 	}
 
+	/*
+	 * read a integer from packet.
+	 **/
 	private int readInt(byte[] b) {
 		return (b[0] & 0xff) | ((b[1] & 0xff) << 8);
 	}
@@ -147,7 +166,13 @@ public class ConnectSQLMR extends Thread {
 
 	}
 
-	
+	/*
+	 * Parse a statement from packet.
+	 * The statement format is as below.
+	 * ---------------------
+	 * | command |statement|
+	 * ---------------------
+	 **/
 	private String getStatement(int statementLen) {
 		int command;
 		StringBuffer statement = new StringBuffer(byteLen);
@@ -182,6 +207,12 @@ public class ConnectSQLMR extends Thread {
 		}
 	}
 	
+	/*
+	 * After server receive results from SQLMR, server will send it to client.
+	 * 
+	 * @param statement
+	 *			The statement which is sent from client
+	 **/
 	private void  SendResults(String statement) {
 		// Row data information
 		InputStream rowDataStream;
@@ -353,7 +384,7 @@ public class ConnectSQLMR extends Thread {
 
 	}
 	                               
-	
+
 	private int sqlmrToJavaType(String sqlmrType) {
 		if (sqlmrType.equalsIgnoreCase("BIT")) {
 			return 16;// FIELD_TYPE_BIT
