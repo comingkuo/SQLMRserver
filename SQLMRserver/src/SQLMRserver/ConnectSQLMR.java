@@ -157,9 +157,6 @@ public class ConnectSQLMR extends Thread {
 			in.read(StreamBuf, 0, InfoLen);
 			database = new String(StreamBuf, 0, InfoLen, encoding);
 
-			System.out.println("encoding:" + encoding + " user: " + user
-					+ " password: " + password + " database: " + database
-					+ " DBlen: " + InfoLen);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -254,7 +251,6 @@ public class ConnectSQLMR extends Thread {
 					sendToUser.writeString(rowDataSplit[i], encoding);
 				}
 
-				System.out.println("dataline: " + rowDataLine);
 				while ((rowDataLine = rowDataBuffer.readLine()) != null) {
 					rowDataSplit = rowDataLine.split("	");
 
@@ -266,7 +262,6 @@ public class ConnectSQLMR extends Thread {
 					sendToUser.writeByte((byte) ((packetLen >> 16) & 0xff));
 					sendToUser.writeByte((byte) 0x00);// discard (multi-packetseq)
 
-					System.out.println("dataline: " + rowDataLine);
 					for (int i = 0; i < rowDataSplit.length; i++) {
 						sendToUser.writeByte((byte) 0xfc);
 						sendToUser.writeInt(rowDataSplit[i].length());
@@ -300,17 +295,12 @@ public class ConnectSQLMR extends Thread {
 
 			StatementParser stmtparser = new StatementParser(statement);
 			String allresult = stmtparser.getParseResult();
-			System.out.println("line 270 this is results: " + allresult);
 
 			String[] results = allresult.split("\n");
 			String columnInfoLine;
 
 			int columnCount;
-			//if ((columnInfoLine = columnInfoBuffer.readLine()) != null)
-				columnCount = Integer.parseInt(results[0]);
-				System.out.println("columnCount: " + columnCount);
-			//else
-			//	throw new NullPointerException();
+			columnCount = Integer.parseInt(results[0]);
 
 			sendToUser.clear();
 			sendToUser.writeByte((byte) 0xfc);
@@ -334,9 +324,7 @@ public class ConnectSQLMR extends Thread {
 					throw new NullPointerException();
 
 				columnSplit = columnInfoLine.split("	");
-				for(int j=0;j<columnSplit.length;j++) {
-					System.out.println("line304: c[" + j + "]: " + columnSplit[j]);
-				}
+
 				if (columnSplit.length != 8)
 					throw new IOException("column information incorrect!");
 
@@ -353,7 +341,6 @@ public class ConnectSQLMR extends Thread {
 
 				/* packet header */
 				packetLen = tableName.length() + name.length() + 13;
-				System.out.println("packetLen: " + packetLen);
 				sendToUser.writeByte((byte) (packetLen & 0xff));
 				sendToUser.writeByte((byte) ((packetLen >> 8) & 0xff));
 				sendToUser.writeByte((byte) ((packetLen >> 16) & 0xff));
@@ -384,7 +371,6 @@ public class ConnectSQLMR extends Thread {
 
 	}
 	                               
-
 	private int sqlmrToJavaType(String sqlmrType) {
 		if (sqlmrType.equalsIgnoreCase("BIT")) {
 			return 16;// FIELD_TYPE_BIT
